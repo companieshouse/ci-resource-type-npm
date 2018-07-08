@@ -29,7 +29,7 @@ const inventPackage = async (tempDirectory, packageName, version, registry = und
 
 const publishInventedPackage = async (tempDirectory, registry, token, packageName, version) =>
     inventPackage(path.join(tempDirectory, unscopedPackageName(packageName)), packageName, version)
-        .then(files => regClient.publish(packageUrl(registry, packageName), {
+        .then(() => regClient.publish(packageUrl(registry, packageName), {
             metadata: {
                 "name": unscopedPackageName(packageName),
                 "version": version
