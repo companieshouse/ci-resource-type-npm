@@ -72,7 +72,6 @@ Then(/^version "([^"]*)" is returned$/, expectedVersion => {
 });
 
 Then(/^the content of file "(.*)" is "(.*)"$/, async (filename, content) => {
-  console.log(this.result)
   const expectedContent = `${content}\n`;
   const actualContent = await fs.readFile(path.join(this.tempDir, filename), 'utf-8');
   assert.strictEqual(actualContent, expectedContent);
