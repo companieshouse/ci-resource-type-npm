@@ -1,0 +1,24 @@
+storage: /verdaccio/storage
+
+auth:
+  htpasswd:
+    file: /verdaccio/storage/htpasswd
+
+uplinks: {}
+
+packages:
+  '@*/*':
+    access: $authenticated
+    publish: $authenticated
+    unpublish: $authenticated
+  '**':
+    access: $authenticated
+    publish: $authenticated
+    unpublish: $authenticated
+
+middlewares:
+  audit:
+    enabled: false
+
+logs:
+  - { type: stdout, format: pretty, level: http }
