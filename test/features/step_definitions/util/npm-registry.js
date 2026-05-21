@@ -77,7 +77,7 @@ const getPackageVersionsNpm = async (registry, auth, packageName) => {
     return Array.isArray(parsed) ? parsed : [parsed];
 };
 
-const unpublishNpm = async (registry, auth, packageName, version) =>
+const unpublishNpmUser = async (registry, auth, packageName, version) =>
     npmWithAuth(registry, auth, ['unpublish', `${packageName}@${version}`, '--force', '--registry', registry], process.cwd())
         .catch(() => true);
 
@@ -124,7 +124,7 @@ const getPackageVersions = async (registry, auth, packageName) =>
             .then(response => Object.keys(response.versions))
             .catch(() => []);
 
-const unpublishReal = async (registry, auth, packageName, version) =>
+const unpublishNpmToken = async (registry, auth, packageName, version) =>
     regClient.unpublish(
         packageUrl(registry, packageName),
         { version, ...requestOptions(auth) })
@@ -136,41 +136,10 @@ const unpublishReal = async (registry, auth, packageName, version) =>
             throw error;
         });
 
-const getNexusRequestOptions = (url, auth) => {
-    if (auth && auth.token) {
-        return ({ url, headers: { Authorization: `Bearer ${auth.token}` } });
-    }
-    if (auth && auth.username && auth.password) {
-        return ({ url, auth: { user: auth.username, pass: auth.password } });
-    }
-    return ({ url });
-};
-
-const unpublishNexusWorkaround_tooWrong = async (registry, auth, packageName, version) =>
-    request.delete(getNexusRequestOptions(`${packageUrl(registry, packageName)}/-/${packageName}-${version}.tgz`, auth))
-        .then(result => {
-            if ((result.statusCode >= 200 && result.statusCode < 300) || result.statusCode === 404)
-                return result;
-            throw `${result.statusCode} - ${result.body}`;
-        });
-
-const unpublishNexusWorkaround = async (registry, auth, packageName, version) =>
-    request.delete(getNexusRequestOptions(`${packageUrl(registry, packageName)}`, auth))
-        .then(result => {
-            console.log(`Workaround for Sonatype Nexus 3.12 problems when unpublishing npm packages deleting ALL versions has status ${result.statusCode}`);
-            if ((result.statusCode >= 200 && result.statusCode < 300) || result.statusCode === 404)
-                return result;
-            throw `${result.statusCode} - ${result.body}`;
-        });
-
-const unpublish = process.env['NEXUS_WORKAROUND'] === 'true'
-    ? unpublishNexusWorkaround
-    : unpublishReal;
-
 const unpublishWithRegistry = async (registry, auth, packageName, version) =>
     hasUserPassAuth(auth)
-        ? unpublishNpm(registry, auth, packageName, version)
-        : unpublish(registry, auth, packageName, version);
+        ? unpublishNpmUser(registry, auth, packageName, version)
+        : unpublishNpmToken(registry, auth, packageName, version);
 
 const ensureUserAvailable = async (registry, auth) => {
     if (!hasUserPassAuth(auth)) return;
@@ -228,7 +197,7 @@ const issueTokenFromUser = async registry => {
 const ensurePackageVersionNotAvailable = async (registry, auth, packageName, packageVersion) =>
     getPackageVersions(registry, auth, packageName)
         .then(versions => versions.filter(version => version === packageVersion))
-        .then(versions => versions.map(async version => unpublishWithRegistry(registry, auth, packageName, version)))
+        .then(versions => versions.map(version => unpublishWithRegistry(registry, auth, packageName, version)))
         .then(promises => Promise.all(promises))
 
 const ensurePackageVersionAvailable = async (tempDirectory, registry, auth, packageName, version) =>
