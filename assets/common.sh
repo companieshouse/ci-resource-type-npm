@@ -9,23 +9,23 @@ scope=""
 yarn_args=""
 
 cleanup_npmrc() {
-    rm "${HOME}/.npmrc"
+    rm /home/node/.npmrc
 }
 
 setup_npmrc() {
     trap cleanup_npmrc EXIT
-    echo -n > "${HOME}/.npmrc"
+    echo -n > /home/node/.npmrc
 
     registry_target="${registry:-https://registry.npmjs.org/}"
     registry_target="//$(printf "%s" "${registry_target}" | sed -E 's#^https?://##')"
 
     if [ -n "${username}" ] && [ -n "${password}" ]; then
       encoded_password=$(printf "%s" "${password}" | base64 | tr -d '\n')
-      echo "${registry_target}:username=${username}" >> "${HOME}/.npmrc"
-      echo "${registry_target}:_password=${encoded_password}" >> "${HOME}/.npmrc"
-      [ -n "$email" ] && echo "${registry_target}:email=${email}" >> "${HOME}/.npmrc"
+      echo "${registry_target}:username=${username}" >> /home/node/.npmrc
+      echo "${registry_target}:_password=${encoded_password}" >> /home/node/.npmrc
+      [ -n "$email" ] && echo "${registry_target}:email=${email}" >> /home/node/.npmrc
     elif [ -n "$token" ]; then
-      echo "${registry_target}:_authToken=${token}" >> "${HOME}/.npmrc"
+      echo "${registry_target}:_authToken=${token}" >> /home/node/.npmrc
     fi
 
     if [ -n "$scope" ]; then
@@ -35,7 +35,7 @@ setup_npmrc() {
         fi
 
         echo "@${scope}:registry=${registry}" \
-        >> "${HOME}/.npmrc"
+        >> /home/node/.npmrc
 
         echo "  Scope limited to @$scope"
     fi
@@ -68,4 +68,8 @@ setup_resource() {
     echo "Initializing npmrc..."
     setup_npmrc
     setup_package
+}
+
+npm() {
+    su node -c "npm $*"
 }
