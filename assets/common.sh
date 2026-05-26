@@ -14,7 +14,12 @@ cleanup_npmrc() {
 
 setup_npmrc() {
     trap cleanup_npmrc EXIT
+
+    mkdir -p /home/node/.npm
+    chown -R node:node /home/node/.npm
+
     echo -n > /home/node/.npmrc
+    chown node:node /home/node/.npmrc
 
     registry_target="${registry:-https://registry.npmjs.org/}"
     registry_target="//$(printf "%s" "${registry_target}" | sed -E 's#^https?://##')"
