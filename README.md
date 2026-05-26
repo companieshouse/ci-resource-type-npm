@@ -9,9 +9,13 @@ Add the resource type to your pipeline:
 ```yaml
 resource_types:
 - name: npm
-  type: docker-image
+  type: registry-image
   source:
-    repository: timotto/concourse-npm-resource
+    aws_access_key_id: ((secrets.shared-services-aws-access-key-id))
+    aws_secret_access_key: ((secret.shared-services-aws-secret-access-key))
+    aws_region: eu-west-2
+    repository: ci-resource-type-npm
+    tag: latest
 ```
 
 ## Source Configuration
