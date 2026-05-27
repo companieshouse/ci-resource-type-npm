@@ -47,7 +47,7 @@ fi
 
 # optional version override though "params: {version: path/to/version/file}"
 [ -n "$version_string" ] \
-&& npm version "$version_string" \
+&& npm version --no-git-tag-version "$version_string" \
 || version_string=$(jq -r .version < package.json)
 
 echo "Publishing..."
