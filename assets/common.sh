@@ -7,6 +7,7 @@ TMPDIR=/tmp
 registry=""
 scope=""
 yarn_args=""
+use_jfrog_cli=0
 
 cleanup_npmrc() {
     rm /home/node/.npmrc
@@ -25,10 +26,9 @@ setup_npmrc() {
     registry_target="//$(printf "%s" "${registry_target}" | sed -E 's#^https?://##')"
 
     if [ -n "${username}" ] && [ -n "${password}" ]; then
-      encoded_password=$(printf "%s" "${password}" | base64 | tr -d '\n')
-      echo "${registry_target}:username=${username}" >> /home/node/.npmrc
-      echo "${registry_target}:_password=${encoded_password}" >> /home/node/.npmrc
-      [ -n "$email" ] && echo "${registry_target}:email=${email}" >> /home/node/.npmrc
+      jf c add --url "${registry}" --user "${username}" --password "${password}" --interactive=false
+      jf npm-config --repo-resolve virtual-npm-release --repo-deploy local-ch-npm-release
+      use_jfrog_cli=1
     elif [ -n "$token" ]; then
       echo "${registry_target}:_authToken=${token}" >> /home/node/.npmrc
     fi
@@ -66,7 +66,6 @@ setup_resource() {
     token=$(jq -r '.source.registry.token // ""' <<< "${payload}")
     username=$(jq -r '.source.registry.username // ""' <<< "${payload}")
     password=$(jq -r '.source.registry.password // ""' <<< "${payload}")
-    email=$(jq -r '.source.registry.email // ""' <<< "${payload}")
     scope=$(jq -r '.source.scope // ""' <<< "${payload}")
     package=$(jq -r '.source.package // ""' <<< "${payload}")
 
