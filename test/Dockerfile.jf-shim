@@ -1,0 +1,5 @@
+ARG BASE_IMAGE=ci-resource-type-npm:latest
+FROM ${BASE_IMAGE}
+
+COPY jf-shim.sh /usr/local/bin/jf
+RUN chmod +x /usr/local/bin/jf
