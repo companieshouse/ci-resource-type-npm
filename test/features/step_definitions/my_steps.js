@@ -10,6 +10,7 @@ const npmUtil = require('./util/npm-registry');
 setDefaultTimeout(30000);
 
 const unitUnderTest = process.env['DOCKER_IMAGE'] || 'ci-resource-type-npm:latest';
+const jfShimPath = process.env['TEST_JF_SHIM_PATH'];
 
 let testRegistry;
 let resourceRegistry;
@@ -155,19 +156,29 @@ const sourceRegistryDefinition = (privateOrPublic, auth) => {
   if (auth.token !== undefined) {
     return { uri, token: auth.token };
   }
-  return { uri, username: auth.username, password: auth.password, email: auth.email };
+  return { uri, username: auth.username, password: auth.password };
 };
 
-const runResource = async command => 
-  spawnIn('docker', [
+const runResource = async command => {
+  const dockerArgs = [
     'run', '--rm', '-i',
     '-v', `${this.testVolume}:/test-volume`,
-    '-v', `${this.testHome}:/root`,
+    '-v', `${this.testHome}:/root`
+  ];
+
+  if (jfShimPath && `${jfShimPath}`.trim() !== '') {
+    dockerArgs.push('-v', `${path.resolve(jfShimPath)}:/usr/local/bin/jf:ro`);
+  }
+
+  dockerArgs.push(
     unitUnderTest,
     `/opt/resource/${command}`,
     '/test-volume'
-  ], JSON.stringify(this.input))
+  );
+
+  return spawnIn('docker', dockerArgs, JSON.stringify(this.input))
     .then(result => this.result = result);
+};
 
 const spawnIn = async (command, args, input = undefined) =>
   new Promise(resolve => {
@@ -197,15 +208,13 @@ const buildCredentials = mode => {
   if (mode === 'userpass') {
     const correctUsername = assertNonEmptyEnv('CORRECT_USERNAME');
     const correctPassword = assertNonEmptyEnv('CORRECT_PASSWORD');
-    const correctEmail = process.env['CORRECT_EMAIL'] || 'test@example.com';
     return {
-      correct: { username: correctUsername, password: correctPassword, email: correctEmail },
+      correct: { username: correctUsername, password: correctPassword },
       incorrect: {
         username: process.env['INCORRECT_USERNAME'] || `${correctUsername}-invalid`,
-        password: process.env['INCORRECT_PASSWORD'] || 'invalid',
-        email: process.env['INCORRECT_EMAIL'] || correctEmail
+        password: process.env['INCORRECT_PASSWORD'] || 'invalid'
       },
-      empty: { username: '', password: '', email: '' },
+      empty: { username: '', password: '' },
       missing: undefined
     };
   }

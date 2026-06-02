@@ -42,8 +42,7 @@ fi
 
 if [ "$cmd" = "npm-config" ]; then
   if [ -f "$state_file" ]; then
-    # shellcheck disable=SC1090
-    . "$state_file"
+    . "${state_file}"
     if [ -n "${URL:-}" ] && [ -n "${USER:-}" ] && [ -n "${PASS:-}" ]; then
       mkdir -p /home/node
       host="$(registry_host "$URL")"
@@ -51,7 +50,6 @@ if [ "$cmd" = "npm-config" ]; then
       cat > "$npmrc_path" <<EOF
 //${host}:username=${USER}
 //${host}:_password=${encoded_pass}
-//${host}:email=test@example.com
 registry=${URL}
 EOF
     fi
