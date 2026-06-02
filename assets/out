@@ -52,10 +52,7 @@ fi
 
 echo "Publishing..."
 
-cmd=(npm)
-[ "${use_jfrog_cli}" -eq 1 ] && cmd=(jf npm)
-
-"${cmd[@]}" publish \
+npm publish \
 > "$publish_result_file" \
 2> "$publish_result_file" \
 && publish_result_code=$? \

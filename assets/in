@@ -35,10 +35,7 @@ if [ ! "$skip_download" = "true" ]; then
   cat > package.json <<EOT
 {"descriptions":"npm-resource get step","repository":{},"readme":"npm-resource get step","license":"Apache-2.0"}
 EOT
-
-cmd=(npm)
-[ "${use_jfrog_cli}" -eq 1 ] && cmd=(jf npm)
-"${cmd[@]}" i -S "$fqpn@$version_string"
+  npm i -S "$fqpn@$version_string"
 else
   echo "Skipping download"
 fi

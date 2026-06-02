@@ -22,9 +22,7 @@ echo "Resource setup successful."
 && fqpn="@$scope/$package" \
 || fqpn="$package"
 
-cmd=(npm)
-[ "${use_jfrog_cli}" -eq 1 ] && cmd=(jf npm)
-result=`"${cmd[@]}" info \
+result=`npm info \
     --json \
     "$fqpn" \
 | jq '[{version:.["dist-tags"].latest}]'`
