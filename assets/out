@@ -51,10 +51,9 @@ fi
 || version_string=$(jq -r .version < package.json)
 
 echo "Publishing..."
-
 npm publish \
-> "$publish_result_file" \
-2> "$publish_result_file" \
+> $publish_result_file \
+2> $publish_result_file \
 && publish_result_code=$? \
 || publish_result_code=$?
 
