@@ -67,29 +67,7 @@ CORRECT_PASSWORD=test \
 npm test
 ```
 
-## JF CLI Flow Test Without Artifactory
-
-If you want to validate the `jf` code path without a paid Artifactory npm setup,
-use the local JF shim script. The shim accepts `jf c add` and
-`jf npm-config`, and forwards `jf npm ...` to `npm ...`.
-
-The test runner supports mounting the shim into the resource container at
-runtime using `TEST_JF_SHIM_PATH`.
-
-Run tests with user/password mode against Verdaccio:
-
-```bash
-DOCKER_IMAGE=ci-resource-type-npm:latest \
-TEST_JF_SHIM_PATH=./jf-shim.sh \
-TEST_AUTH_MODE=userpass \
-TEST_REGISTRY=http://127.0.0.1:4873/ \
-TEST_REGISTRY_INTERNAL=http://host.docker.internal:4873/ \
-CORRECT_USERNAME=test \
-CORRECT_PASSWORD=test \
-npm test
-```
-
-This validates shell branching and command wiring for the JF path, while using
+The mounted shim takes over command wiring for the JF path, while using
 Verdaccio for package behavior.
 
 ## Local Registry Notes
