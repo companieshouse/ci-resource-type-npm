@@ -33,8 +33,8 @@ setup_npmrc() {
     registry_target="//$(printf "%s" "${registry_target}" | sed -E 's#^https?://##')"
 
     if [ -n "${username}" ] && [ -n "${password}" ]; then
-      run_as_node "jf c add --url ${registry} --user ${username} --password ${password} --interactive=false"
-      run_as_node "jf npm-config --global --repo-resolve virtual-npm-release --repo-deploy local-ch-npm-release"
+      run_as_node "jf c add --url=${registry} --user=${username} --password=${password} --interactive=false"
+      run_as_node "jf npm-config --global --repo-resolve=${repo_resolve} --repo-deploy=${repo_deploy}"
       use_jfrog_cli=1
     elif [ -n "$token" ]; then
       echo "${registry_target}:_authToken=${token}" >> /home/node/.npmrc
@@ -73,6 +73,8 @@ setup_resource() {
     token=$(jq -r '.source.registry.token // ""' <<< "${payload}")
     username=$(jq -r '.source.registry.username // ""' <<< "${payload}")
     password=$(jq -r '.source.registry.password // ""' <<< "${payload}")
+    repo_resolve=$(jq -r '.source.registry.repoResolve // "virtual-npm-release"' <<< "${payload}")
+    repo_deploy=$(jq -r '.source.registry.repoDeploy // "local-ch-npm-release"' <<< "${payload}")
     scope=$(jq -r '.source.scope // ""' <<< "${payload}")
     package=$(jq -r '.source.package // ""' <<< "${payload}")
 

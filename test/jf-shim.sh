@@ -2,26 +2,11 @@
 set -eu
 
 # Minimal JFrog CLI shim for local flow testing.
-# - Accepts config commands used by this resource.
 # - Forwards `jf npm ...` calls to npm.
 
 cmd="${1:-}"
 state_file="/tmp/jf-shim-state"
 npmrc_path="/home/node/.npmrc"
-
-get_flag_value() {
-  flag="$1"
-  shift
-  while [ "$#" -gt 0 ]; do
-    if [ "$1" = "$flag" ]; then
-      shift
-      printf "%s" "${1:-}"
-      return 0
-    fi
-    shift
-  done
-  return 1
-}
 
 registry_host() {
   # Strip scheme from URL to build npmrc auth key format.
@@ -29,9 +14,24 @@ registry_host() {
 }
 
 if [ "$cmd" = "c" ] && [ "${2:-}" = "add" ]; then
-  url="$(get_flag_value --url "$@" || true)"
-  user="$(get_flag_value --user "$@" || true)"
-  pass="$(get_flag_value --password "$@" || true)"
+  url=""
+  user=""
+  pass=""
+
+  for arg in "$@"; do
+    case "$arg" in
+      --url=*)
+        url="${arg#--url=}"
+        ;;
+      --user=*)
+        user="${arg#--user=}"
+        ;;
+      --password=*)
+        pass="${arg#--password=}"
+        ;;
+    esac
+  done
+
   cat > "$state_file" <<EOF
 URL=${url}
 USER=${user}
