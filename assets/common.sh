@@ -73,8 +73,8 @@ setup_resource() {
     token=$(jq -r '.source.registry.token // ""' <<< "${payload}")
     username=$(jq -r '.source.registry.username // ""' <<< "${payload}")
     password=$(jq -r '.source.registry.password // ""' <<< "${payload}")
-    repo_resolve=$(jq -r '.source.registry.repoResolve // "virtual-npm-release"' <<< "${payload}")
-    repo_deploy=$(jq -r '.source.registry.repoDeploy // "local-npm-ch-release"' <<< "${payload}")
+    repo_resolve=$(jq -r '.source.registry.repo_resolve // "virtual-npm-release"' <<< "${payload}")
+    repo_deploy=$(jq -r '.source.registry.repo_deploy // "local-npm-ch-release"' <<< "${payload}")
     scope=$(jq -r '.source.scope // ""' <<< "${payload}")
     package=$(jq -r '.source.package // ""' <<< "${payload}")
 
