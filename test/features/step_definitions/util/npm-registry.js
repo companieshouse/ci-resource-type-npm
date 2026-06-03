@@ -43,7 +43,6 @@ const writeAuthNpmrc = async (directory, registry, auth) => {
         const encodedPassword = Buffer.from(auth.password).toString('base64');
         lines.push(`${registryTarget}:username=${auth.username}`);
         lines.push(`${registryTarget}:_password=${encodedPassword}`);
-        lines.push(`${registryTarget}:email=${auth.email || 'test@example.com'}`);
     }
 
     await fs.writeFile(npmrcPath, `${lines.join('\n')}\n`);
@@ -153,7 +152,6 @@ const ensureUserAvailable = async (registry, auth) => {
         body: JSON.stringify({
             name: auth.username,
             password: auth.password,
-            email: auth.email || 'test@example.com',
             type: 'user'
         })
     }).catch(() => undefined);
@@ -182,8 +180,7 @@ const issueTokenFromUser = async registry => {
     const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
     const auth = {
         username: `token-user-${suffix}`,
-        password: `token-pass-${suffix}`,
-        email: `token-user-${suffix}@example.com`
+        password: `token-pass-${suffix}`
     };
 
     const token = await ensureUserAvailable(registry, auth);

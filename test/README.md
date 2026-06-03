@@ -39,7 +39,6 @@ or
 - `TEST_AUTH_MODE=userpass`
 - `CORRECT_USERNAME`
 - `CORRECT_PASSWORD`
-- `CORRECT_EMAIL` (optional, defaults to `test@example.com`)
 
 Set `NORMRF=true` if you want to keep temp directories after test runs.
 
@@ -60,13 +59,16 @@ npm test
 ```bash
 DOCKER_IMAGE=ci-resource-type-npm:latest \
 TEST_AUTH_MODE=userpass \
+TEST_JF_SHIM_PATH=./jf-shim.sh \
 TEST_REGISTRY=http://127.0.0.1:4873/ \
 TEST_REGISTRY_INTERNAL=http://host.docker.internal:4873/ \
 CORRECT_USERNAME=test \
 CORRECT_PASSWORD=test \
-CORRECT_EMAIL=test@example.com \
 npm test
 ```
+
+The mounted shim takes over command wiring for the JF path, while using
+Verdaccio for package behavior.
 
 ## Local Registry Notes
 
