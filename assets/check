@@ -22,6 +22,8 @@ echo "Resource setup successful."
 && fqpn="@$scope/$package" \
 || fqpn="$package"
 
+cd "${NODE_HOME}"
+
 result=`npm info \
     --json \
     "$fqpn" \
