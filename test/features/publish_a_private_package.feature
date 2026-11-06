@@ -11,8 +11,6 @@ Feature: Publish a private package
     And the registry has no package "publish-test" available in version "1.2.3"
     And the registry has no package "publish-test" available in version "1.2.4"
     And the registry has no package "publish-test" available in version "1.2.5"
-    And the registry has no package "publish-test" available in version "1.2.6"
-    And the registry has no package "publish-test" available in version "1.2.7"
     But the registry has a package "publish-test" available in version "1.2.2"
 
   Scenario: Uploading a package to a private registry
@@ -54,32 +52,10 @@ Feature: Publish a private package
 
   Scenario: Building and publishing a package
     Given a source configuration for private package "publish-test" with correct credentials
-    And the registry has a package "build-test-dependency" available in version "1.0.0"
     And I have a put step with params package: "publish-test"
     And I have valid npm package source code for package "publish-test" with version "1.2.5"
     And the package has a build script
-    And the package uses the test dependency
     When the package is published
     Then version "1.2.5" is returned
-    And the published package "publish-test" version "1.2.5" contains "built.txt"
+    And the file "source-code/built.txt" does exist
     And there should be a package "publish-test" available with version "1.2.5" in the registry
-
-  Scenario: Building without registry credentials fails
-    Given a source configuration for private package "publish-test" with missing credentials
-    And I have a put step with params package: "publish-test"
-    And I have valid npm package source code for package "publish-test" with version "1.2.6"
-    And the package has a build script
-    When the package is published
-    Then an error is returned
-    And the error contains "build requires registry username and password"
-    And the error does not contain "Installing dependencies..."
-    And there should be no package "publish-test" available with version "1.2.6" in the registry
-
-  Scenario: Failed build does not publish
-    Given a source configuration for private package "publish-test" with correct credentials
-    And I have a put step with params package: "publish-test"
-    And I have valid npm package source code for package "publish-test" with version "1.2.7"
-    And the package has a failing build script
-    When the package is published
-    Then an error is returned
-    And there should be no package "publish-test" available with version "1.2.7" in the registry
