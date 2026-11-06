@@ -203,11 +203,32 @@ const ensurePackageVersionAvailable = async (tempDirectory, registry, auth, pack
         .then(async packagePresent => packagePresent ? true :
             publishInventedPackage(tempDirectory, registry, auth, packageName, version));
 
+const publishedPackageContainsFile = async (registry, auth, packageName, version, filename) => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'npm-package-check-'));
+
+    try {
+        const { stdout } = await npmWithAuth(
+            registry,
+            auth,
+            ['pack', `${packageName}@${version}`, '--registry', registry],
+            dir
+        );
+
+        const archive = path.join(dir, stdout.trim());
+        const { stdout: contents } = await execFileAsync('tar', ['-tzf', archive]);
+
+        return contents.split('\n').includes(`package/${filename}`);
+    } finally {
+        await fs.remove(dir);
+    }
+};
+
 module.exports = {
     ensurePackageVersionNotAvailable,
     ensurePackageVersionAvailable,
     inventPackage,
     getPackageVersions,
     ensureUserAvailable,
-    issueTokenFromUser
+    issueTokenFromUser,
+    publishedPackageContainsFile
 };

@@ -77,6 +77,12 @@ When(/^the resource is fetched$/, async () =>
 Then(/^an error is returned$/, () =>
   assert.notEqual(this.result.code, 0, new Error(`expected an error but result code is 0\n${this.result.stdout}${this.result.stderr}`)));
 
+Then(/^the error contains "(.*)"$/, message =>
+  assert.ok(this.result.stderr.includes(message)));
+
+Then(/^the error does not contain "(.*)"$/, message =>
+  assert.ok(!this.result.stderr.includes(message)));
+
 Then(/^version "([^"]*)" is returned$/, expectedVersion => {
   assert.strictEqual(this.result.code, 0, new Error(`expected success but result code is ${this.result.code}\n${this.result.stderr}`));
   const j = JSON.parse(this.result.stdout);
@@ -128,6 +134,56 @@ Given(/^I have (valid|invalid) npm package source code for package "(.*)" with v
         ? this.input.source.registry.uri
         : undefined));
 
+const writeLockfile = (dir, manifest) =>
+  fs.writeJson(path.join(dir, 'package-lock.json'), {
+    name: manifest.name,
+    version: manifest.version,
+    lockfileVersion: 3,
+    packages: { '': { name: manifest.name, version: manifest.version } }
+  });
+
+Given(/^the package has a build script$/, async () => {
+  const dir = path.join(this.testVolume, 'source-code');
+  const manifest = await fs.readJson(path.join(dir, 'package.json'));
+
+  manifest.scripts = { build: 'echo built > built.txt' };
+  manifest.files = ['built.txt'];
+
+  await fs.writeJson(path.join(dir, 'package.json'), manifest);
+  await writeLockfile(dir, manifest);
+
+  this.input.params.build = true;
+});
+
+Given(/^the package uses the test dependency$/, async () => {
+  const dir = path.join(this.testVolume, 'source-code');
+  const manifest = await fs.readJson(path.join(dir, 'package.json'));
+  const lock = await fs.readJson(path.join(dir, 'package-lock.json'));
+
+  manifest.dependencies = { 'build-test-dependency': '1.0.0' };
+  manifest.scripts.build = "node -e \"require.resolve('build-test-dependency/package.json')\" && echo built > built.txt";
+
+  lock.packages[''].dependencies = manifest.dependencies;
+  lock.packages['node_modules/build-test-dependency'] = {
+    version: '1.0.0',
+    resolved: `${resourceRegistry.replace(/\/$/, '')}/build-test-dependency/-/build-test-dependency-1.0.0.tgz`
+  };
+
+  await fs.writeJson(path.join(dir, 'package.json'), manifest);
+  await fs.writeJson(path.join(dir, 'package-lock.json'), lock);
+});
+
+Given(/^the package has a failing build script$/, async () => {
+  const dir = path.join(this.testVolume, 'source-code');
+
+  this.input.params.build = true;
+
+  const manifest = await fs.readJson(path.join(dir, 'package.json'));
+  manifest.scripts = { build: 'exit 1' };
+  await fs.writeJson(path.join(dir, 'package.json'), manifest);
+
+  await writeLockfile(dir, manifest);
+});
 
 When(/^the package is published$/, async () =>
   runResource('out'));
@@ -137,6 +193,12 @@ Then(/^there should be (a|no) package "(.*)" available with version "(.*)" in th
     await (npmUtil.getPackageVersions(testRegistry, fixtureCredentials.correct, packageName)
       .then(versions => versions.filter(version => version === wantedVersion).length)),
     aOrNo === 'a' ? 1 : 0));
+
+Then(/^the published package "(.*)" version "(.*)" contains "(.*)"$/, async (packageName, version, filename) =>
+  assert.strictEqual(
+    await npmUtil.publishedPackageContainsFile(testRegistry, fixtureCredentials.correct, packageName, version, filename),
+    true
+  ));
 
 const findTempFile = async filename =>
   fs.pathExists(path.join(this.testVolume, filename));
