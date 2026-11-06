@@ -129,6 +129,22 @@ Given(/^I have (valid|invalid) npm package source code for package "(.*)" with v
         : undefined));
 
 
+Given(/^the package has a build script$/, async () => {
+  const dir = path.join(this.testVolume, 'source-code');
+  const manifest = await fs.readJson(path.join(dir, 'package.json'));
+
+  manifest.scripts = { build: 'echo built > built.txt' };
+  await fs.writeJson(path.join(dir, 'package.json'), manifest);
+  await fs.writeJson(path.join(dir, 'package-lock.json'), {
+    name: manifest.name,
+    version: manifest.version,
+    lockfileVersion: 3,
+    packages: { '': { name: manifest.name, version: manifest.version } }
+  });
+
+  this.input.params.build = true;
+});
+
 When(/^the package is published$/, async () =>
   runResource('out'));
 

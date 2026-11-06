@@ -17,6 +17,7 @@ publish_error_file=$(mktemp $TMPDIR/publish-error.XXXXXX)
 payload="$(cat <&0)"
 
 package_path=$(jq -r '.params.path // ""' <<< "$payload")
+build=$(jq -r '.params.build // "false"' <<< "$payload")
 
 if [ -z "$package_path" ]; then
   echo "invalid payload (missing path)"
@@ -43,6 +44,15 @@ manifestName="$(jq -r .name < package.json)"
 if [ ! "@$scope/$package" = "$manifestName" ] && [ ! "$package" = "$manifestName" ]; then
   echo "package name in resource definition and package.json don't match, $package vs $manifestName"
   exit 1
+fi
+
+if [ "$build" = "true" ]; then
+  [ "${use_jfrog_cli:-0}" -eq 1 ] || { echo "build requires registry username and password" >&2; exit 1; }
+
+  echo "Installing dependencies..."
+  npm ci
+  echo "Building..."
+  run_as_node "npm run build"
 fi
 
 # optional version override though "params: {version: path/to/version/file}"

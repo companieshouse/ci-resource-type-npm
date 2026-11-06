@@ -50,6 +50,7 @@ Publishes the given NPM package to a private or public registry.
 
 * `path`: *Required.* Path to the directory containing the `package.json` file.
 * `version`: *Optional.* Path to a file containing the version, overrides the version stored in `package.json`.
+* `build`: *Optional.* Run `npm ci` and `npm run build` before publishing. Defaults to `false`. Requires registry username and password.
 
 ## Example
 

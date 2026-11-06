@@ -10,6 +10,7 @@ Feature: Publish a private package
     And the registry has no package "publish-test-fail" available in version "1.2.3"
     And the registry has no package "publish-test" available in version "1.2.3"
     And the registry has no package "publish-test" available in version "1.2.4"
+    And the registry has no package "publish-test" available in version "1.2.5"
     But the registry has a package "publish-test" available in version "1.2.2"
 
   Scenario: Uploading a package to a private registry
@@ -48,3 +49,13 @@ Feature: Publish a private package
     When the package is published
     Then an error is returned
     And there should be no package "publish-test-fail" available with version "1.2.3" in the registry
+
+  Scenario: Building and publishing a package
+    Given a source configuration for private package "publish-test" with correct credentials
+    And I have a put step with params package: "publish-test"
+    And I have valid npm package source code for package "publish-test" with version "1.2.5"
+    And the package has a build script
+    When the package is published
+    Then version "1.2.5" is returned
+    And the file "source-code/built.txt" does exist
+    And there should be a package "publish-test" available with version "1.2.5" in the registry
